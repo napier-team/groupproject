@@ -1,4 +1,4 @@
-name: CI with Docker
+name: GitHub Action CI build
 
 on:
   push:
