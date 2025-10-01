@@ -1,0 +1,21 @@
+name: GitHub Action CI build
+
+on:
+  push:
+    branches: [ "feature/add-git-workflow" ]
+  pull_request:
+    branches: [ "feature/add-git-workflow" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t myapp .
+
+      - name: Run container
+        run: docker run --rm myapp
