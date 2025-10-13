@@ -1,7 +1,6 @@
 package com.napier.sem.dao;
 
 import com.napier.sem.models.Country;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,8 +10,9 @@ import java.util.List;
 
 /**
  * Data Access Object for handling all country-related database operations.
+ * This class implements the ICountryDAO interface.
  */
-public class CountryDAO {
+public class CountryDAO implements ICountryDAO {
     private final Connection con;
 
     /**
@@ -24,10 +24,9 @@ public class CountryDAO {
     }
 
     /**
-     * Retrieves a list of all countries from the database,
-     * ordered by population from largest to smallest.
-     * @return A list of Country objects, or null if an error occurs.
+     * {@inheritDoc}
      */
+    @Override
     public List<Country> getAllCountries() {
         String sql = "SELECT Code, Name, Continent, Region, Population, Capital "
                 + "FROM country ORDER BY Population DESC";
@@ -49,7 +48,7 @@ public class CountryDAO {
             }
             return countries;
         } catch (SQLException e) {
-            System.out.println("Failed to get country details: " + e.getMessage());
+            System.err.println("Failed to get country details: " + e.getMessage());
             return null; // Return null to indicate failure
         }
     }
