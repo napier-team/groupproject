@@ -1,0 +1,28 @@
+# Defines the Docker Compose file format version.
+version: '3.8'
+
+# Defines the services (containers) that make up the application.
+services:
+  # The application service, built from the local Dockerfile.
+  app:
+    build: .
+    # Ensures the application starts only after the database service is ready.
+    depends_on:
+      - db
+
+  # The database service, using the official MySQL image.
+  db:
+    image: mysql:8.0
+    # Ensures the database container restarts automatically if it stops.
+    restart: always
+    environment:
+      # Sets the root password for the database, required for the app to connect.
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      # Maps port 3307 of the host machine to port 3306 in the container
+      # to allow direct database access for development or debugging purposes.
+      - "3307:3306"
+    volumes:
+      # Mounts the local ./db directory into a special directory in the container.
+      # Any .sql files in ./db will be automatically executed to initialize the database schema and data on first start.
+      - ./db:/docker-entrypoint-initdb.d
