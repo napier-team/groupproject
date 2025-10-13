@@ -1,6 +1,7 @@
 package com.napier.sem;
 
 import com.napier.sem.dao.CountryDAO;
+import com.napier.sem.dao.ICountryDAO;
 import com.napier.sem.models.Country;
 import com.napier.sem.reports.ReportGenerator;
 
@@ -10,56 +11,80 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * The main application class that orchestrates the report generation.
+ * The main application class. It orchestrates the process of connecting to the database,
+ * fetching data, and generating reports.
  */
 public class App {
     /**
-     * The database connection, managed as a static resource for the application.
+     * The database connection, managed as a static resource for the application's lifetime.
      */
     private static Connection con = null;
 
     /**
+     * The maximum number of times to retry the database connection.
+     */
+    private static final int MAX_RETRIES = 10;
+
+    /**
+     * The delay in milliseconds between connection retry attempts.
+     */
+    private static final int RETRY_DELAY_MS = 1000;
+
+    /**
      * Establishes a connection to the MySQL database.
-     * It will attempt to connect multiple times before failing.
+     * Configuration is read from environment variables for flexibility.
+     * The method will attempt to connect multiple times before failing.
      */
     public static void connect() {
         try {
             // Load the MySQL JDBC driver
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            System.out.println("Could not load SQL driver");
+            System.err.println("Could not load SQL driver");
             System.exit(-1);
         }
 
-        int retries = 10;
-        for (int i = 0; i < retries; ++i) {
+        // Read connection details from environment variables, with defaults for local development.
+        String dbHost = System.getenv().getOrDefault("DB_HOST", "db");
+        String dbUser = System.getenv().getOrDefault("DB_USER", "root");
+        String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "example");
+        String connectionUrl = String.format("jdbc:mysql://%s:3306/world?useSSL=false&allowPublicKeyRetrieval=true", dbHost);
+
+        for (int i = 0; i < MAX_RETRIES; ++i) {
             System.out.println("Connecting to database...");
             try {
-                // Wait a bit for the database to start
-                Thread.sleep(10000);
-                // Attempt to connect to the database
-                con = DriverManager.getConnection("jdbc:mysql://db:3306/world?useSSL=false&allowPublicKeyRetrieval=true", "root", "example");
+                // Attempt to establish the connection.
+                con = DriverManager.getConnection(connectionUrl, dbUser, dbPassword);
                 System.out.println("Successfully connected");
-                return; // Exit the loop on successful connection
+                return; // Exit the loop on a successful connection.
             } catch (SQLException sqle) {
-                System.out.println("Failed to connect to database attempt " + (i + 1));
-                System.out.println(sqle.getMessage());
-            } catch (InterruptedException ie) {
-                System.out.println("Thread interrupted? Should not happen.");
+                System.err.printf("Failed to connect to database on attempt %d of %d%n", i + 1, MAX_RETRIES);
+                System.err.println(sqle.getMessage());
+
+                // Wait a short time before the next retry attempt.
+                try {
+                    Thread.sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException ie) {
+                    System.err.println("Thread interrupted? Should not happen.");
+                }
             }
         }
+
+        // If all retries fail, print an error and exit the application.
+        System.err.println("Could not connect to the database after " + MAX_RETRIES + " attempts.");
+        System.exit(1);
     }
 
     /**
-     * Closes the connection to the database.
+     * Closes the active database connection.
      */
     public static void disconnect() {
         if (con != null) {
             try {
                 con.close();
                 System.out.println("Successfully disconnected");
-            } catch (Exception e) {
-                System.out.println("Error closing connection to database");
+            } catch (SQLException e) {
+                System.err.println("Error closing connection to database: " + e.getMessage());
             }
         }
     }
@@ -72,12 +97,11 @@ public class App {
         // Establish the database connection
         connect();
 
-        // Create instances of the DAO and the report generator
-        CountryDAO countryDAO = new CountryDAO(con);
+        // Instantiate the necessary components for data access and report generation
+        ICountryDAO countryDAO = new CountryDAO(con);
         ReportGenerator reportGenerator = new ReportGenerator();
 
-        // --- Execute Application Logic ---
-        // Retrieve all countries from the database
+        // Retrieve the data for the report
         List<Country> countries = countryDAO.getAllCountries();
 
         // Generate and display the report
