@@ -8,5 +8,5 @@ RUN mvn -B package -DskipTests
 #Run the app
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/app.jar app.jar
 CMD ["java", "-jar", "app.jar"]
