@@ -1,8 +1,8 @@
 package com.napier.sem;
 
-import com.napier.sem.dao.city_dao.CityDAO;
+import com.napier.sem.dao.CityDAO;
 import com.napier.sem.dao.CountryDAO;
-import com.napier.sem.dao.city_dao.ICityDAO;
+import com.napier.sem.dao.ICityDAO;
 import com.napier.sem.dao.ICountryDAO;
 import com.napier.sem.models.City;
 import com.napier.sem.models.Country;

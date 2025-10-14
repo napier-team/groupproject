@@ -1,4 +1,4 @@
-package com.napier.sem.dao.city_dao;
+package com.napier.sem.dao;
 
 import com.napier.sem.models.City;
 import java.sql.Connection;
