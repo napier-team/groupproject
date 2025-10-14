@@ -1,7 +1,10 @@
 package com.napier.sem;
 
+import com.napier.sem.dao.city_dao.CityDAO;
 import com.napier.sem.dao.CountryDAO;
+import com.napier.sem.dao.city_dao.ICityDAO;
 import com.napier.sem.dao.ICountryDAO;
+import com.napier.sem.models.City;
 import com.napier.sem.models.Country;
 import com.napier.sem.reports.ReportGenerator;
 
@@ -99,14 +102,31 @@ public class App {
 
         // Instantiate the necessary components for data access and report generation
         ICountryDAO countryDAO = new CountryDAO(con);
+        ICityDAO cityDAO = new CityDAO(con); // Added for cities
         ReportGenerator reportGenerator = new ReportGenerator();
 
+        // --- Country Report ---
         // Retrieve the data for the report
         List<Country> countries = countryDAO.getAllCountries();
 
         // Generate and display the report
         System.out.println("\nAll countries in the world by population:");
         reportGenerator.displayCountries(countries);
+
+        // --- Space before listing Cities ---
+        System.out.println();
+        System.out.println();
+        System.out.println("\n---A Space to Breathe---");
+        System.out.println();
+        System.out.println();
+
+        // --- City Report ---
+        // Retrieve the data for the report
+        List<City> cities = cityDAO.getAllCities();
+
+        // Generate and display the report
+        System.out.println("\nAll cities in the world by population:");
+        reportGenerator.displayCities(cities);
 
         // Disconnect from the database
         disconnect();

@@ -1,6 +1,7 @@
 package com.napier.sem.reports;
 
 import com.napier.sem.models.Country;
+import com.napier.sem.models.City;
 
 import java.util.List;
 
@@ -30,6 +31,26 @@ public class ReportGenerator {
                     String.format("%-5s %-45s %-15s %-25s %-12d %-10d",
                             country.code, country.name, country.continent, country.region, country.population, country.capital);
             System.out.println(countryString);
+        }
+    }
+
+    public void displayCities(List<City> cities) {
+        if (cities == null) {
+            System.out.println("No data to display.");
+            return;
+        }
+
+        // Print table header
+        System.out.println(String.format("%-10s %-35s %-15s %-25s %-12s",
+                "ID", "Name", "Country Code", "District", "Population"));
+
+        // Print each city's details
+        for (City city : cities) {
+            if (city == null) continue;
+            String cityString =
+                    String.format("%-10s %-35s %-15s %-25s %-12d",
+                            city.id, city.name, city.code, city.district, city.population);
+            System.out.println(cityString);
         }
     }
 }
