@@ -16,7 +16,7 @@ jobs:
     services:
       db:
         image: mysql:8.0
-        environment:
+        env:
           MYSQL_ROOT_PASSWORD: example
           MYSQL_DATABASE: world
         ports:
