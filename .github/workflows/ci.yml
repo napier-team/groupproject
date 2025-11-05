@@ -50,4 +50,26 @@ jobs:
         run: docker build -t sem-project-app .
 
       - name: Run container as smoke test
-        run: docker run --rm sem-project-app
+        run: |
+          docker run -d --rm \
+            --name smoke-test-app \
+            --add-host=host.docker.internal:host-gateway \
+            -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/world \
+            -e SPRING_DATASOURCE_USERNAME=root \
+            -e SPRING_DATASOURCE_PASSWORD=example \
+            sem-project-app
+          
+          echo "Waiting 20s for container to start..."
+          sleep 20
+          
+          echo "Container logs:"
+          docker logs smoke-test-app
+
+          # Check if the container is still running
+          if ! docker ps -f name=smoke-test-app --format '{{.Names}}' | grep -q smoke-test-app; then
+            echo "Smoke test container failed to start or crashed."
+            exit 1
+          else
+            echo "Smoke test container started successfully."
+            docker stop smoke-test-app
+          fi
