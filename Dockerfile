@@ -6,7 +6,7 @@ COPY src ./src
 RUN mvn -B package -DskipTests
 
 #Run the app
-FROM openjdk:17-jdk-slim
+FROM amazoncorretto:17
 WORKDIR /app
 COPY --from=build /app/target/app.jar app.jar
 CMD ["java", "-jar", "app.jar"]
