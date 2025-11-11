@@ -2,12 +2,9 @@ name: Java CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [ "main", "develop" ]
   pull_request:
-    branches:
-      - develop
+    branches: [ "develop" ]
 
 jobs:
   build-and-test:
@@ -16,7 +13,7 @@ jobs:
 
     # Service container to run MySQL. Accessible on localhost:3306
     services:
-      db:
+      mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: example
@@ -25,13 +22,13 @@ jobs:
           - 3306:3306
         # Health check to ensure DB is ready before steps begin
         options: >-
-          --health-cmd "mysqladmin ping -h localhost"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       # Manually populate the database as the service starts empty
@@ -55,13 +52,17 @@ jobs:
           DB_USER: root
           DB_PASSWORD: example
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-jar
-          path: target/*.jar
+      # Integration Test: Run the actual application JAR against the Service DB
+      # We use localhost because the service port 3306 is mapped to the runner's localhost
+      - name: Run Application Integration Test
+        run: java -jar target/app.jar
+        env:
+          DB_HOST: localhost
+          DB_USER: root
+          DB_PASSWORD: example
 
-      - name: Build Docker image
+      # Build the Docker image to ensure the Dockerfile is valid
+      - name: Build Docker Image
         run: docker build -t sem-project-app .
 
       # Smoke Test: Runs the container using host networking to access the DB service
