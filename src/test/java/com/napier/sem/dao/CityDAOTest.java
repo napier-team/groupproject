@@ -18,13 +18,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for CityDAO.
- * This class uses Mockito to "mock" the database connection.
+ * Uses Mockito to fake a database
  */
-@ExtendWith(MockitoExtension.class) // This tells JUnit to use Mockito
+@ExtendWith(MockitoExtension.class)
 public class CityDAOTest {
 
-    // Mock the database dependencies
+    // Mock the database
     @Mock
     private Connection con;
 
@@ -34,60 +33,49 @@ public class CityDAOTest {
     @Mock
     private ResultSet rset;
 
-    // Inject the mocks into the class we are testing
     @InjectMocks
     private CityDAO cityDAO;
 
-    /**
-     * Test the "Happy Path" where data is returned successfully.
-     */
+
     @Test
     public void testGetAllCitiesHappyPath() throws SQLException {
         // 1. Arrange: Program the mocks
 
-        // When con.prepareStatement() is called, return our mock statement
+        // When called, return mock statement
         when(con.prepareStatement(anyString())).thenReturn(stmt);
 
-        // When stmt.executeQuery() is called, return our mock result set
+        // When called, return mock results
         when(stmt.executeQuery()).thenReturn(rset);
 
-        // When rset.next() is called, return true once, then false
+        // When called, return true once then false
         when(rset.next()).thenReturn(true).thenReturn(false);
 
         // Program the mock result set to return sample data
-        when(rset.getString("ID")).thenReturn("101");
+        when(rset.getString("ID")).thenReturn("67");
         when(rset.getString("Name")).thenReturn("Test City");
-        when(rset.getString("CountryCode")).thenReturn("TCY");
-        when(rset.getString("District")).thenReturn("Test District");
+        when(rset.getString("CountryCode")).thenReturn("TET");
+        when(rset.getString("District")).thenReturn("Mango Phonk");
         when(rset.getInt("Population")).thenReturn(5000);
 
-        // 2. Act: Call the method
         List<City> cities = cityDAO.getAllCities();
 
-        // 3. Assert: Check the results
         assertNotNull(cities);
-        assertEquals(1, cities.size()); // We expected one city
+        assertEquals(1, cities.size());
 
         City city = cities.get(0);
-        assertEquals("101", city.id);
+        assertEquals("67", city.id);
         assertEquals("Test City", city.name);
-        assertEquals("TCY", city.code);
-        assertEquals("Test District", city.district);
+        assertEquals("TET", city.code);
+        assertEquals("Mango Phonk", city.district);
         assertEquals(5000, city.population);
     }
 
-    /**
-     * Test the "Exception Path" where the database throws an error.
-     */
     @Test
     public void testGetAllCitiesSQLException() throws SQLException {
-        // 1. Arrange: Program the mock connection to throw an exception
         when(con.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
 
-        // 2. Act: Call theN method
         List<City> cities = cityDAO.getAllCities();
 
-        // 3. Assert: Check that the method returned null as per the catch block
         assertNull(cities);
     }
 }

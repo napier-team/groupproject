@@ -5,8 +5,8 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn -B package -DskipTests
 
-#Run the app
-FROM openjdk:17-jdk-slim
+#Run the app (needs to be like this cause openjdk is dead)
+FROM amazoncorretto:17
 WORKDIR /app
 COPY --from=build /app/target/app.jar app.jar
 CMD ["java", "-jar", "app.jar"]
