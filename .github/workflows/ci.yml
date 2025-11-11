@@ -50,4 +50,4 @@ jobs:
         run: docker build -t sem-project-app .
 
       - name: Run container as smoke test
-        run: docker run --rm sem-project-app
+        run: docker run --rm --network="host" sem-project-app localhost:3306 10000
