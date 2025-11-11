@@ -20,8 +20,9 @@ import java.util.List;
 public class App {
     /**
      * The database connection, managed as a static resource for the application's lifetime.
+     * Public to allow access for integration testing.
      */
-    private static Connection con = null;
+    public static Connection con = null;
 
     /**
      * The maximum number of times to retry the database connection.
@@ -29,16 +30,12 @@ public class App {
     private static final int MAX_RETRIES = 10;
 
     /**
-     * The delay in milliseconds between connection retry attempts.
-     */
-    private static final int RETRY_DELAY_MS = 1000;
-
-    /**
      * Establishes a connection to the MySQL database.
-     * Configuration is read from environment variables for flexibility.
-     * The method will attempt to connect multiple times before failing.
+     *
+     * @param location The database location (host:port).
+     * @param delay    The delay in milliseconds before the first connection attempt (useful for waiting for DB startup).
      */
-    public static void connect() {
+    public static void connect(String location, int delay) {
         try {
             // Load the MySQL JDBC driver
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -47,15 +44,15 @@ public class App {
             System.exit(-1);
         }
 
-        // Read connection details from environment variables, with defaults for local development.
-        String dbHost = System.getenv().getOrDefault("DB_HOST", "db");
         String dbUser = System.getenv().getOrDefault("DB_USER", "root");
         String dbPassword = System.getenv().getOrDefault("DB_PASSWORD", "example");
-        String connectionUrl = String.format("jdbc:mysql://%s:3306/world?useSSL=false&allowPublicKeyRetrieval=true", dbHost);
+        String connectionUrl = String.format("jdbc:mysql://%s/world?useSSL=false&allowPublicKeyRetrieval=true", location);
 
         for (int i = 0; i < MAX_RETRIES; ++i) {
             System.out.println("Connecting to database...");
             try {
+                // Wait a bit for db to start
+                Thread.sleep(delay);
                 // Attempt to establish the connection.
                 con = DriverManager.getConnection(connectionUrl, dbUser, dbPassword);
                 System.out.println("Successfully connected");
@@ -63,13 +60,8 @@ public class App {
             } catch (SQLException sqle) {
                 System.err.printf("Failed to connect to database on attempt %d of %d%n", i + 1, MAX_RETRIES);
                 System.err.println(sqle.getMessage());
-
-                // Wait a short time before the next retry attempt.
-                try {
-                    Thread.sleep(RETRY_DELAY_MS);
-                } catch (InterruptedException ie) {
-                    System.err.println("Thread interrupted? Should not happen.");
-                }
+            } catch (InterruptedException ie) {
+                System.err.println("Thread interrupted? Should not happen.");
             }
         }
 
@@ -94,11 +86,17 @@ public class App {
 
     /**
      * The main entry point for the application.
+     *
      * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
+        // Read connection details from environment variables, with defaults for local development.
+        String dbHost = System.getenv().getOrDefault("DB_HOST", "db");
+        // Default port for MySQL inside the container is 3306
+        String location = dbHost + ":3306";
+
         // Establish the database connection
-        connect();
+        connect(location, 10000);
 
         // Instantiate the necessary components for data access and report generation
         ICountryDAO countryDAO = new CountryDAO(con);
