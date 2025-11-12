@@ -12,6 +12,13 @@ services:
       db:
         condition: service_healthy
 
+    #CODE TO MAKE DOCKER CONNECT FOR TESTS
+    environment:
+      - DB_HOST=db        # Tells the app the database hostname is 'db'
+      - DB_USER=root      # Passes the database username
+      - DB_PASSWORD=example # Passes the database password
+    #END OF TESTS
+
   # The database service, using the official MySQL 8.0 image.
   db:
     image: mysql:8.0
