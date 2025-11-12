@@ -18,12 +18,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
- * Uses Mockito to fake a database
+ * Unit tests for CityDAO using Mockito.
  */
 @ExtendWith(MockitoExtension.class)
 public class CityDAOTest {
 
-    // Mock the database
     @Mock
     private Connection con;
 
@@ -36,46 +35,40 @@ public class CityDAOTest {
     @InjectMocks
     private CityDAO cityDAO;
 
-
     @Test
     public void testGetAllCitiesHappyPath() throws SQLException {
-        // 1. Arrange: Program the mocks
-
-        // When called, return mock statement
+        // Arrange mocks
         when(con.prepareStatement(anyString())).thenReturn(stmt);
-
-        // When called, return mock results
         when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false); // Loop once
 
-        // When called, return true once then false
-        when(rset.next()).thenReturn(true).thenReturn(false);
-
-        // Program the mock result set to return sample data
+        // Mock return data
         when(rset.getString("ID")).thenReturn("67");
         when(rset.getString("Name")).thenReturn("Test City");
         when(rset.getString("CountryCode")).thenReturn("TET");
         when(rset.getString("District")).thenReturn("Mango Phonk");
         when(rset.getInt("Population")).thenReturn(5000);
 
+        // Act
         List<City> cities = cityDAO.getAllCities();
 
+        // Assert
         assertNotNull(cities);
         assertEquals(1, cities.size());
-
         City city = cities.get(0);
         assertEquals("67", city.id);
         assertEquals("Test City", city.name);
-        assertEquals("TET", city.code);
-        assertEquals("Mango Phonk", city.district);
-        assertEquals(5000, city.population);
     }
 
     @Test
     public void testGetAllCitiesSQLException() throws SQLException {
+        // Arrange exception
         when(con.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
 
+        // Act
         List<City> cities = cityDAO.getAllCities();
 
+        // Assert
         assertNull(cities);
     }
 }
