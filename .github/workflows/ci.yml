@@ -8,10 +8,10 @@ on:
 
 jobs:
   build-and-test:
-    name: Build, Test, and Verify Docker
+    name: Build, Test, and Verify
     runs-on: ubuntu-latest
 
-    # Service container to run MySQL. This creates a service accessible on localhost:3306
+    # Service container to run MySQL. Accessible on localhost:3306
     services:
       mysql:
         image: mysql:8.0
@@ -31,8 +31,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # We need to manually populate the database because the 'services' block
-      # starts a fresh, empty MySQL instance.
+      # Manually populate the database as the service starts empty
       - name: Initialize Database
         run: |
           sudo apt-get install -y mysql-client
@@ -44,9 +43,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Build the JAR and run Unit Tests
-      - name: Build with Maven
-        run: mvn -B package
+      # Run Unit and Integration Tests via Maven
+      # Passes the database connection string for the CI environment
+      - name: Build and Test with Maven
+        run: mvn -B verify --file pom.xml
+        env:
+          DB_HOST: localhost:3306
+          DB_USER: root
+          DB_PASSWORD: example
 
       # Integration Test: Run the actual application JAR against the Service DB
       # We use localhost because the service port 3306 is mapped to the runner's localhost
@@ -61,9 +65,8 @@ jobs:
       - name: Build Docker Image
         run: docker build -t sem-project-app .
 
-      # Smoke Test: Run the Docker container to ensure it starts correctly.
-      # We use --network="host" so the container can access the MySQL service running on the host.
-      - name: Run Docker Container (Smoke Test)
+      # Smoke Test: Runs the container using host networking to access the DB service
+      - name: Run container as smoke test
         run: |
           docker run --rm \
           --network="host" \
