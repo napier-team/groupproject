@@ -13,37 +13,41 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Unit tests for ReportGenerator.
- * Uses output capturing to verify console printing.
- */
 public class ReportGeneratorTest {
 
     private ReportGenerator reportGenerator;
+
+    // Capture System.out.println() output
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
 
     @BeforeEach
     public void setUp() {
         reportGenerator = new ReportGenerator();
-        // Redirect System.out to capture output
         System.setOut(new PrintStream(outContent));
     }
 
     @AfterEach
     public void tearDown() {
-        // Restore original System.out
         System.setOut(originalOut);
     }
 
+    /**
+     * Test for Countries with a null list
+     */
     @Test
     public void testDisplayCountriesNull() {
         reportGenerator.displayCountries(null);
-        assertEquals("No data to display.", outContent.toString().trim());
+        // println adds a newline, so we expect the string + lineSeparator
+        assertEquals("No data to display." + System.lineSeparator(), outContent.toString());
     }
 
+    /**
+     * Test for Countries with a list containing one country
+     */
     @Test
     public void testDisplayCountries() {
+        // Create a sample list
         List<Country> countries = new ArrayList<>();
         Country c = new Country();
         c.code = "UA";
@@ -61,20 +65,28 @@ public class ReportGeneratorTest {
         String row = String.format("%-5s %-45s %-15s %-25s %-12d %-10d",
                 "UA", "Ukraine", "Europe", "Eastern Europe", 67000000, 410);
 
-        // Use System.lineSeparator() for cross-platform compatibility
-        String expectedOutput = header + System.lineSeparator() + row;
+        // Construct expected output: Header + Newline + Row + Newline
+        // We do NOT trim the actual output, so we must include all newlines exactly.
+        String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
 
-        assertEquals(expectedOutput, outContent.toString().trim());
+        assertEquals(expectedOutput, outContent.toString());
     }
 
+    /**
+     * Test for Cities with a null list
+     */
     @Test
     public void testDisplayCitiesNull() {
         reportGenerator.displayCities(null);
-        assertEquals("No data to display.", outContent.toString().trim());
+        assertEquals("No data to display." + System.lineSeparator(), outContent.toString());
     }
 
+    /**
+     * Test for Cities with a list containing one city
+     */
     @Test
     public void testDisplayCities() {
+        // Create a sample list
         List<City> cities = new ArrayList<>();
         City c = new City();
         c.id = "101";
@@ -91,8 +103,9 @@ public class ReportGeneratorTest {
         String row = String.format("%-10s %-35s %-15s %-25s %-12d",
                 "101", "Edinburgh", "EDI", "Scotland", 506520);
 
-        String expectedOutput = header + System.lineSeparator() + row;
+        // Construct expected output: Header + Newline + Row + Newline
+        String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
 
-        assertEquals(expectedOutput, outContent.toString().trim());
+        assertEquals(expectedOutput, outContent.toString());
     }
 }
