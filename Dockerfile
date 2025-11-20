@@ -1,14 +1,18 @@
 # Stage 1: Build the application
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
+
+# Copy only pom.xml first to leverage Docker layer caching for dependencies
 COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source code and build
 COPY src ./src
-RUN mvn -B package -DskipTests
+RUN mvn package -DskipTests -B
 
 # Stage 2: Run the application
-# Uses Amazon Corretto 17 as required by course specifications
 FROM amazoncorretto:17
 WORKDIR /app
 COPY --from=build /app/target/app.jar app.jar
-# Defines the entry point for the container
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
