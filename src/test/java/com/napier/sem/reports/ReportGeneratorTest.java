@@ -13,7 +13,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 public class ReportGeneratorTest {
 
     private ReportGenerator reportGenerator;
@@ -39,7 +38,8 @@ public class ReportGeneratorTest {
     @Test
     public void testDisplayCountriesNull() {
         reportGenerator.displayCountries(null);
-        assertEquals("No data to display.", outContent.toString().trim());
+        // println adds a newline, so we expect the string + lineSeparator
+        assertEquals("No data to display." + System.lineSeparator(), outContent.toString());
     }
 
     /**
@@ -60,15 +60,16 @@ public class ReportGeneratorTest {
 
         reportGenerator.displayCountries(countries);
 
-        // Checks if the output is the same (probably don't need this)
         String header = String.format("%-5s %-45s %-15s %-25s %-12s %-10s",
                 "Code", "Name", "Continent", "Region", "Population", "Capital");
         String row = String.format("%-5s %-45s %-15s %-25s %-12d %-10d",
                 "UA", "Ukraine", "Europe", "Eastern Europe", 67000000, 410);
 
-        String expectedOutput = header + System.lineSeparator() + row;
+        // Construct expected output: Header + Newline + Row + Newline
+        // We do NOT trim the actual output, so we must include all newlines exactly.
+        String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
 
-        assertEquals(expectedOutput, outContent.toString().trim());
+        assertEquals(expectedOutput, outContent.toString());
     }
 
     /**
@@ -77,7 +78,7 @@ public class ReportGeneratorTest {
     @Test
     public void testDisplayCitiesNull() {
         reportGenerator.displayCities(null);
-        assertEquals("No data to display.", outContent.toString().trim());
+        assertEquals("No data to display." + System.lineSeparator(), outContent.toString());
     }
 
     /**
@@ -97,13 +98,14 @@ public class ReportGeneratorTest {
 
         reportGenerator.displayCities(cities);
 
-        // Checks if the output is the same (probably don't need this)
         String header = String.format("%-10s %-35s %-15s %-25s %-12s",
                 "ID", "Name", "Country Code", "District", "Population");
         String row = String.format("%-10s %-35s %-15s %-25s %-12d",
                 "101", "Edinburgh", "EDI", "Scotland", 506520);
-        String expectedOutput = header + System.lineSeparator() + row;
 
-        assertEquals(expectedOutput, outContent.toString().trim());
+        // Construct expected output: Header + Newline + Row + Newline
+        String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
+
+        assertEquals(expectedOutput, outContent.toString());
     }
 }
