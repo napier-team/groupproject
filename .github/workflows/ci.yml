@@ -1,17 +1,36 @@
-name: Java CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "develop", "release/*" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "main", "develop", "release/*" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-test:
-    name: Build, Test, and Verify
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-    # Service container to run MySQL. Accessible on localhost:3306
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Unit Tests
+        run: mvn -B test
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
     services:
       mysql:
         image: mysql:8.0
@@ -20,7 +39,6 @@ jobs:
           MYSQL_DATABASE: world
         ports:
           - 3306:3306
-        # Health check to ensure DB is ready before steps begin
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -28,49 +46,74 @@ jobs:
           --health-retries=3
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout source code
         uses: actions/checkout@v4
-
-      # Manually populate the database as the service starts empty
-      - name: Initialize Database
-        run: |
-          sudo apt-get install -y mysql-client
-          mysql -h 127.0.0.1 -u root -pexample world < db/world.sql
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
 
-      # Run Unit and Integration Tests via Maven
-      # Passes the database connection string for the CI environment
-      - name: Build and Test with Maven
-        run: mvn -B verify --file pom.xml
-        env:
-          DB_HOST: localhost:3306
-          DB_USER: root
-          DB_PASSWORD: example
-
-      # Integration Test: Run the actual application JAR against the Service DB
-      # We use localhost because the service port 3306 is mapped to the runner's localhost
-      - name: Run Application Integration Test
-        run: java -jar target/app.jar
-        env:
-          DB_HOST: localhost
-          DB_USER: root
-          DB_PASSWORD: example
-
-      # Build the Docker image to ensure the Dockerfile is valid
-      - name: Build Docker Image
-        run: docker build -t sem-project-app .
-
-      # Smoke Test: Runs the container using host networking to access the DB service
-      - name: Run container as smoke test
+      - name: Initialize Database
         run: |
-          docker run --rm \
-          --network="host" \
-          -e DB_HOST=localhost \
-          -e DB_USER=root \
-          -e DB_PASSWORD=example \
-          sem-project-app
+          sudo apt-get install -y mysql-client
+          mysql -h 127.0.0.1 -u root -pexample world < db/world.sql
+
+      - name: Run Integration Tests
+        # Skips unit tests to focus solely on integration logic
+        run: mvn -B verify -Dsurefire.skip=true
+        env:
+          # Port :3306 is appended automatically by App.java
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASSWORD: example
+
+  build-and-publish:
+    name: Build & Publish Image
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build JAR
+        # Skip tests as they passed in previous stages
+        run: mvn -B package -DskipTests
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
