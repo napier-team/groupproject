@@ -4,11 +4,19 @@ import com.napier.sem.models.City;
 import java.util.List;
 
 /**
- * City data access interface
+ * Interface defining data access operations for City entities.
  */
 public interface ICityDAO {
     /**
-     * Retrieves a list of cities from the sql file and order by population
+     * Retrieves all cities organized by largest population to smallest.
+     * @return List of all cities.
      */
     List<City> getAllCities();
+
+    /**
+     * Retrieves the top N populated cities in the world.
+     * @param n The number of cities to return.
+     * @return List of top N cities.
+     */
+    List<City> getTopNCities(int n);
 }

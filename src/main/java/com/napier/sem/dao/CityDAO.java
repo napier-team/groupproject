@@ -9,43 +9,58 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * implements the ICityDAO interface, to be used with city operations.
+ * Implementation of ICityDAO. Handles database interactions for City data.
  */
 public class CityDAO implements ICityDAO {
     private final Connection con;
 
-    /**
-     * Constructs a CityDAO with a database connection.
-     */
     public CityDAO(Connection con) {
         this.con = con;
     }
 
     @Override
     public List<City> getAllCities() {
-        // SQL query to select all necessary fields from the city table
         String sql = "SELECT ID, Name, CountryCode, District, Population "
                 + "FROM city ORDER BY Population DESC";
+        // Null limit means "fetch all"
+        return executeQuery(sql, null);
+    }
 
+    @Override
+    public List<City> getTopNCities(int n) {
+        // Use ? for parameter to prevent SQL injection
+        String sql = "SELECT ID, Name, CountryCode, District, Population "
+                + "FROM city ORDER BY Population DESC LIMIT ?";
+        return executeQuery(sql, n);
+    }
+
+    /**
+     * Helper method to execute query and map results.
+     * Reduces code duplication.
+     */
+    private List<City> executeQuery(String sql, Integer limit) {
         List<City> cities = new ArrayList<>();
 
-        try (PreparedStatement stmt = con.prepareStatement(sql);
-             ResultSet rset = stmt.executeQuery()) {
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            if (limit != null) {
+                stmt.setInt(1, limit);
+            }
 
-            // Creates city objects from sql results
-            while (rset.next()) {
-                City city = new City();
-                city.id = rset.getString("ID");
-                city.name = rset.getString("Name");
-                city.code = rset.getString("CountryCode");
-                city.district = rset.getString("District");
-                city.population = rset.getInt("Population");
-                cities.add(city);
+            try (ResultSet rset = stmt.executeQuery()) {
+                while (rset.next()) {
+                    City city = new City();
+                    city.id = rset.getString("ID");
+                    city.name = rset.getString("Name");
+                    city.code = rset.getString("CountryCode");
+                    city.district = rset.getString("District");
+                    city.population = rset.getInt("Population");
+                    cities.add(city);
+                }
             }
             return cities;
         } catch (SQLException e) {
             System.err.println("Failed to get city details: " + e.getMessage());
-            return null; // Failure if returned
+            return null;
         }
     }
 }
