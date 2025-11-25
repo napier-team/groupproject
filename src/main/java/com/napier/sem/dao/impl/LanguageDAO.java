@@ -1,5 +1,6 @@
-package com.napier.sem.dao;
+package com.napier.sem.dao.impl;
 
+import com.napier.sem.dao.ILanguageDAO;
 import com.napier.sem.models.LanguageReport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

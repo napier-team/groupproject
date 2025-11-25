@@ -1,5 +1,6 @@
-package com.napier.sem.dao;
+package com.napier.sem.dao.impl;
 
+import com.napier.sem.dao.IPopulationDAO;
 import com.napier.sem.models.PopulationReport;
 
 import java.sql.Connection;

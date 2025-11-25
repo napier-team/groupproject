@@ -1,7 +1,7 @@
 package com.napier.sem;
 
-import com.napier.sem.dao.CityDAO;
-import com.napier.sem.dao.CountryDAO;
+import com.napier.sem.dao.impl.CityDAO;
+import com.napier.sem.dao.impl.CountryDAO;
 import com.napier.sem.dao.ICityDAO;
 import com.napier.sem.dao.ICountryDAO;
 import com.napier.sem.db.DatabaseConnection;

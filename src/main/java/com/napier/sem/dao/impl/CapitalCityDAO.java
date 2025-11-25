@@ -1,5 +1,6 @@
-package com.napier.sem.dao;
+package com.napier.sem.dao.impl;
 
+import com.napier.sem.dao.ICapitalCityDAO;
 import com.napier.sem.models.CapitalCity;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
