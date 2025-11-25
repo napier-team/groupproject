@@ -22,50 +22,68 @@ public class CountryDAO implements ICountryDAO {
     public List<Country> getAllCountries() {
         String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
                 "FROM country ORDER BY Population DESC";
-        return executeQuery(sql, null);
+        return executeQuery(sql, stmt -> {});
     }
 
     @Override
     public List<Country> getCountriesByContinent(String continent) {
         String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
                 "FROM country WHERE Continent = ? ORDER BY Population DESC";
-        return executeQuery(sql, continent);
+        return executeQuery(sql, stmt -> stmt.setString(1, continent));
     }
 
     @Override
     public List<Country> getCountriesByRegion(String region) {
         String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
                 "FROM country WHERE Region = ? ORDER BY Population DESC";
-        return executeQuery(sql, region);
+        return executeQuery(sql, stmt -> stmt.setString(1, region));
+    }
+
+    @Override
+    public List<Country> getTopNCountries(int n) {
+        String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
+                "FROM country ORDER BY Population DESC LIMIT ?";
+        return executeQuery(sql, stmt -> stmt.setInt(1, n));
+    }
+
+    @Override
+    public List<Country> getTopNCountriesByContinent(String continent, int n) {
+        String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
+                "FROM country WHERE Continent = ? ORDER BY Population DESC LIMIT ?";
+        return executeQuery(sql, stmt -> {
+            stmt.setString(1, continent);
+            stmt.setInt(2, n);
+        });
+    }
+
+    @Override
+    public List<Country> getTopNCountriesByRegion(String region, int n) {
+        String sql = "SELECT Code, Name, Continent, Region, Population, Capital " +
+                "FROM country WHERE Region = ? ORDER BY Population DESC LIMIT ?";
+        return executeQuery(sql, stmt -> {
+            stmt.setString(1, region);
+            stmt.setInt(2, n);
+        });
     }
 
     /**
-     * Helper method to execute queries and map results to Country objects.
-     * Prevents code duplication for mapping logic.
-     *
-     * @param sql   The SQL query string.
-     * @param param The parameter to set in the PreparedStatement (can be null if no params).
-     * @return A list of Country objects or null if an error occurs.
+     * Functional interface for setting SQL parameters safely.
      */
-    private List<Country> executeQuery(String sql, String param) {
+    @FunctionalInterface
+    private interface StatementPreparer {
+        void setParameters(PreparedStatement stmt) throws SQLException;
+    }
+
+    /**
+     * Generic method to execute queries and map results.
+     */
+    private List<Country> executeQuery(String sql, StatementPreparer preparer) {
         List<Country> countries = new ArrayList<>();
-
         try (PreparedStatement stmt = con.prepareStatement(sql)) {
-            // Set parameter if provided
-            if (param != null) {
-                stmt.setString(1, param);
-            }
-
+            preparer.setParameters(stmt);
             try (ResultSet rset = stmt.executeQuery()) {
                 while (rset.next()) {
-                    Country country = new Country();
-                    country.setCode(rset.getString("Code"));
-                    country.setName(rset.getString("Name"));
-                    country.setContinent(rset.getString("Continent"));
-                    country.setRegion(rset.getString("Region"));
-                    country.setPopulation(rset.getInt("Population"));
-                    country.setCapital(rset.getInt("Capital"));
-                    countries.add(country);
+                    countries.add(extractCountryFromResultSet(rset));
                 }
             }
             return countries;
@@ -73,5 +91,19 @@ public class CountryDAO implements ICountryDAO {
             System.err.println("Failed to execute country query: " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Extracts a Country object from the current row of the ResultSet.
+     */
+    private Country extractCountryFromResultSet(ResultSet rset) throws SQLException {
+        Country country = new Country();
+        country.setCode(rset.getString("Code"));
+        country.setName(rset.getString("Name"));
+        country.setContinent(rset.getString("Continent"));
+        country.setRegion(rset.getString("Region"));
+        country.setPopulation(rset.getInt("Population"));
+        country.setCapital(rset.getInt("Capital"));
+        return country;
     }
 }

@@ -26,4 +26,27 @@ public interface ICountryDAO {
      * @return List of Country objects.
      */
     List<Country> getCountriesByRegion(String region);
+
+    /**
+     * Retrieves the top N populated countries in the world.
+     * @param n The number of countries to return.
+     * @return List of Country objects.
+     */
+    List<Country> getTopNCountries(int n);
+
+    /**
+     * Retrieves the top N populated countries in a specific continent.
+     * @param continent The name of the continent.
+     * @param n The number of countries to return.
+     * @return List of Country objects.
+     */
+    List<Country> getTopNCountriesByContinent(String continent, int n);
+
+    /**
+     * Retrieves the top N populated countries in a specific region.
+     * @param region The name of the region.
+     * @param n The number of countries to return.
+     * @return List of Country objects.
+     */
+    List<Country> getTopNCountriesByRegion(String region, int n);
 }

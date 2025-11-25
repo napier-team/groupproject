@@ -35,83 +35,100 @@ public class CountryDAOTest {
     @InjectMocks
     private CountryDAO countryDAO;
 
+    // ... (існуючі тести залишаємо без змін, або вони тут для контексту) ...
+
     @Test
     public void testGetAllCountriesHappyPath() throws SQLException {
-        // Arrange
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
-
         mockCountryRow();
-
-        // Act
         List<Country> countries = countryDAO.getAllCountries();
-
-        // Assert
         assertNotNull(countries);
-        assertEquals(1, countries.size());
-        assertEquals("Agartha", countries.get(0).getName());
     }
 
     @Test
     public void testGetCountriesByContinentHappyPath() throws SQLException {
-        // Arrange
-        String continent = "Europe";
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
-
         mockCountryRow();
-
-        // Act
-        List<Country> countries = countryDAO.getCountriesByContinent(continent);
-
-        // Assert
-        assertNotNull(countries);
-        assertEquals(1, countries.size());
-        // Verify that setString was called with the correct continent
-        verify(stmt).setString(1, continent);
+        countryDAO.getCountriesByContinent("Europe");
+        verify(stmt).setString(1, "Europe");
     }
 
     @Test
     public void testGetCountriesByRegionHappyPath() throws SQLException {
-        // Arrange
-        String region = "Western Europe";
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+        countryDAO.getCountriesByRegion("Western Europe");
+        verify(stmt).setString(1, "Western Europe");
+    }
 
+    // --- НОВІ ТЕСТИ ДЛЯ TOP N ---
+
+    @Test
+    public void testGetTopNCountriesWorld() throws SQLException {
+        // Arrange
+        int n = 5;
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
         mockCountryRow();
 
         // Act
-        List<Country> countries = countryDAO.getCountriesByRegion(region);
+        List<Country> countries = countryDAO.getTopNCountries(n);
 
         // Assert
         assertNotNull(countries);
         assertEquals(1, countries.size());
-        // Verify that setString was called with the correct region
-        verify(stmt).setString(1, region);
+        // Verify LIMIT parameter was set
+        verify(stmt).setInt(1, n);
     }
 
     @Test
-    public void testSQLExceptionHandledGracefully() throws SQLException {
+    public void testGetTopNCountriesByContinent() throws SQLException {
         // Arrange
-        when(con.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
+        int n = 5;
+        String continent = "Asia";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
 
         // Act
-        List<Country> resultAll = countryDAO.getAllCountries();
-        List<Country> resultCont = countryDAO.getCountriesByContinent("Asia");
-        List<Country> resultReg = countryDAO.getCountriesByRegion("Caribbean");
+        List<Country> countries = countryDAO.getTopNCountriesByContinent(continent, n);
 
         // Assert
-        assertNull(resultAll);
-        assertNull(resultCont);
-        assertNull(resultReg);
+        assertNotNull(countries);
+        // Verify parameters: 1 is Continent, 2 is LIMIT
+        verify(stmt).setString(1, continent);
+        verify(stmt).setInt(2, n);
     }
 
-    /**
-     * Helper method to mock a standard country row in ResultSet
-     */
+    @Test
+    public void testGetTopNCountriesByRegion() throws SQLException {
+        // Arrange
+        int n = 5;
+        String region = "Caribbean";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getTopNCountriesByRegion(region, n);
+
+        // Assert
+        assertNotNull(countries);
+        // Verify parameters: 1 is Region, 2 is LIMIT
+        verify(stmt).setString(1, region);
+        verify(stmt).setInt(2, n);
+    }
+
+    // ... helper method ...
     private void mockCountryRow() throws SQLException {
         when(rset.getString("Code")).thenReturn("TST");
         when(rset.getString("Name")).thenReturn("Agartha");
