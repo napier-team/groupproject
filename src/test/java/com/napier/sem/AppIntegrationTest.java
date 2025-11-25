@@ -28,15 +28,12 @@ public class AppIntegrationTest {
 
     @Test
     void testGetCountry() {
-        // App.con is now public, so we can access it directly
         CountryDAO countryDAO = new CountryDAO(App.con);
         List<Country> countries = countryDAO.getAllCountries();
 
         assertNotNull(countries, "Country list should not be null");
         assertTrue(countries.size() > 0, "Country list should contain at least one country");
-
-        // Assuming the database is populated correctly, China is typically the most populous
-        assertEquals("CHN", countries.get(0).code, "First country should be China (CHN)");
+        assertEquals("CHN", countries.get(0).getCode(), "First country should be China (CHN)");
     }
 
     @Test

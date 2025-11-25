@@ -9,43 +9,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * implements the ICityDAO interface, to be used with city operations.
+ * Implements the ICityDAO interface to handle city database operations.
  */
 public class CityDAO implements ICityDAO {
     private final Connection con;
 
-    /**
-     * Constructs a CityDAO with a database connection.
-     */
     public CityDAO(Connection con) {
         this.con = con;
     }
 
     @Override
     public List<City> getAllCities() {
-        // SQL query to select all necessary fields from the city table
-        String sql = "SELECT ID, Name, CountryCode, District, Population "
-                + "FROM city ORDER BY Population DESC";
-
+        String sql = "SELECT ID, Name, CountryCode, District, Population FROM city ORDER BY Population DESC";
         List<City> cities = new ArrayList<>();
 
         try (PreparedStatement stmt = con.prepareStatement(sql);
              ResultSet rset = stmt.executeQuery()) {
 
-            // Creates city objects from sql results
             while (rset.next()) {
                 City city = new City();
-                city.id = rset.getString("ID");
-                city.name = rset.getString("Name");
-                city.code = rset.getString("CountryCode");
-                city.district = rset.getString("District");
-                city.population = rset.getInt("Population");
+                city.setId(rset.getInt("ID"));
+                city.setName(rset.getString("Name"));
+                city.setCountryCode(rset.getString("CountryCode"));
+                city.setDistrict(rset.getString("District"));
+                city.setPopulation(rset.getInt("Population"));
                 cities.add(city);
             }
             return cities;
         } catch (SQLException e) {
             System.err.println("Failed to get city details: " + e.getMessage());
-            return null; // Failure if returned
+            return null;
         }
     }
 }
