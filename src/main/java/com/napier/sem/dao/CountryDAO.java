@@ -9,28 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data Access Object for handling all country-related database operations.
- * This class implements the ICountryDAO interface.
+ * Implements ICountryDAO to handle country database operations.
  */
 public class CountryDAO implements ICountryDAO {
     private final Connection con;
 
-    /**
-     * Constructs a CountryDAO with a database connection.
-     * @param con The database connection to be used for queries.
-     */
     public CountryDAO(Connection con) {
         this.con = con;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<Country> getAllCountries() {
-        String sql = "SELECT Code, Name, Continent, Region, Population, Capital "
-                + "FROM country ORDER BY Population DESC";
-
+        String sql = "SELECT Code, Name, Continent, Region, Population, Capital FROM country ORDER BY Population DESC";
         List<Country> countries = new ArrayList<>();
 
         try (PreparedStatement stmt = con.prepareStatement(sql);
@@ -38,18 +28,18 @@ public class CountryDAO implements ICountryDAO {
 
             while (rset.next()) {
                 Country country = new Country();
-                country.code = rset.getString("Code");
-                country.name = rset.getString("Name");
-                country.continent = rset.getString("Continent");
-                country.region = rset.getString("Region");
-                country.population = rset.getInt("Population");
-                country.capital = rset.getInt("Capital");
+                country.setCode(rset.getString("Code"));
+                country.setName(rset.getString("Name"));
+                country.setContinent(rset.getString("Continent"));
+                country.setRegion(rset.getString("Region"));
+                country.setPopulation(rset.getInt("Population"));
+                country.setCapital(rset.getInt("Capital"));
                 countries.add(country);
             }
             return countries;
         } catch (SQLException e) {
             System.err.println("Failed to get country details: " + e.getMessage());
-            return null; // Return null to indicate failure
+            return null;
         }
     }
 }

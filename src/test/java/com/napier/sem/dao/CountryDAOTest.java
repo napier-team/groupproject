@@ -56,7 +56,7 @@ public class CountryDAOTest {
         // Assert
         assertNotNull(countries);
         assertEquals(1, countries.size());
-        assertEquals("Agartha", countries.get(0).name);
+        assertEquals("Agartha", countries.get(0).getName());
     }
 
     @Test

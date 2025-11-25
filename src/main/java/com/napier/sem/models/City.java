@@ -5,27 +5,44 @@ package com.napier.sem.models;
  */
 public class City {
     /**
-     * City's ID (e.g., 1 , 10 , 67).
+     * City's ID.
      */
-    public String id;
+    private int id;
 
     /**
-     * City's name (e.g., 'Kyiv).
+     * City's name.
      */
-    public String name;
+    private String name;
 
     /**
-     * Country where the city is located.
+     * Country code where the city is located.
      */
-    public String code;
+    private String countryCode;
 
     /**
      * District where the city is located.
      */
-    public String district;
+    private String district;
 
     /**
      * The population of the city.
      */
-    public int population;
+    private int population;
+
+    // Getters and Setters
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getCountryCode() { return countryCode; }
+    public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
+
+    public String getDistrict() { return district; }
+    public void setDistrict(String district) { this.district = district; }
+
+    public int getPopulation() { return population; }
+    public void setPopulation(int population) { this.population = population; }
 }

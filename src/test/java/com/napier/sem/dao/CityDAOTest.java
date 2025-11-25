@@ -42,8 +42,7 @@ public class CityDAOTest {
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false); // Loop once
 
-        // Mock return data
-        when(rset.getString("ID")).thenReturn("67");
+        when(rset.getInt("ID")).thenReturn(67);
         when(rset.getString("Name")).thenReturn("Test City");
         when(rset.getString("CountryCode")).thenReturn("TET");
         when(rset.getString("District")).thenReturn("Mango Phonk");
@@ -56,8 +55,8 @@ public class CityDAOTest {
         assertNotNull(cities);
         assertEquals(1, cities.size());
         City city = cities.get(0);
-        assertEquals("67", city.id);
-        assertEquals("Test City", city.name);
+        assertEquals(67, city.getId());
+        assertEquals("Test City", city.getName());
     }
 
     @Test
