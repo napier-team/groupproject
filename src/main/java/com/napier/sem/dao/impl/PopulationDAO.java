@@ -63,7 +63,41 @@ public class PopulationDAO implements IPopulationDAO {
                 "FROM country";
         return executeQuery(sql);
     }
+    @Override
+    public long getWorldPopulation() {
+        String sql = "SELECT SUM(Population) as Total FROM country";
+        return executeSingleValueQuery(sql, stmt -> {});
+    }
 
+    @Override
+    public long getContinentPopulation(String continent) {
+        String sql = "SELECT SUM(Population) as Total FROM country WHERE Continent = ?";
+        return executeSingleValueQuery(sql, stmt -> stmt.setString(1, continent));
+    }
+
+    @Override
+    public long getRegionPopulation(String region) {
+        String sql = "SELECT SUM(Population) as Total FROM country WHERE Region = ?";
+        return executeSingleValueQuery(sql, stmt -> stmt.setString(1, region));
+    }
+
+    @Override
+    public long getCountryPopulation(String countryCode) {
+        String sql = "SELECT Population as Total FROM country WHERE Code = ?";
+        return executeSingleValueQuery(sql, stmt -> stmt.setString(1, countryCode));
+    }
+
+    @Override
+    public long getDistrictPopulation(String district) {
+        String sql = "SELECT SUM(Population) as Total FROM city WHERE District = ?";
+        return executeSingleValueQuery(sql, stmt -> stmt.setString(1, district));
+    }
+
+    @Override
+    public long getCityPopulation(String cityName) {
+        String sql = "SELECT Population as Total FROM city WHERE Name = ? LIMIT 1";
+        return executeSingleValueQuery(sql, stmt -> stmt.setString(1, cityName));
+    }
     /**
      * Helper to execute query and map results.
      */
@@ -88,5 +122,22 @@ public class PopulationDAO implements IPopulationDAO {
             System.err.println("Failed to execute population report query: " + e.getMessage());
             return null;
         }
+    }
+    private interface StatementPreparer {
+        void setParameters(PreparedStatement stmt) throws SQLException;
+    }
+
+    private long executeSingleValueQuery(String sql, StatementPreparer preparer) {
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            preparer.setParameters(stmt);
+            try (ResultSet rset = stmt.executeQuery()) {
+                if (rset.next()) {
+                    return rset.getLong("Total");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to execute population query: " + e.getMessage());
+        }
+        return 0;
     }
 }
