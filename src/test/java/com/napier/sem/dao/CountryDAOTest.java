@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for CountryDAO using Mockito.
@@ -37,18 +37,12 @@ public class CountryDAOTest {
 
     @Test
     public void testGetAllCountriesHappyPath() throws SQLException {
-        // Arrange mocks
+        // Arrange
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
 
-        // Mock return data
-        when(rset.getString("Code")).thenReturn("TST");
-        when(rset.getString("Name")).thenReturn("Agartha");
-        when(rset.getString("Continent")).thenReturn("Europe");
-        when(rset.getString("Region")).thenReturn("Yugoslavia");
-        when(rset.getInt("Population")).thenReturn(1000);
-        when(rset.getInt("Capital")).thenReturn(1);
+        mockCountryRow();
 
         // Act
         List<Country> countries = countryDAO.getAllCountries();
@@ -60,14 +54,70 @@ public class CountryDAOTest {
     }
 
     @Test
-    public void testGetAllCountriesSQLException() throws SQLException {
-        // Arrange exception
+    public void testGetCountriesByContinentHappyPath() throws SQLException {
+        // Arrange
+        String continent = "Europe";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getCountriesByContinent(continent);
+
+        // Assert
+        assertNotNull(countries);
+        assertEquals(1, countries.size());
+        // Verify that setString was called with the correct continent
+        verify(stmt).setString(1, continent);
+    }
+
+    @Test
+    public void testGetCountriesByRegionHappyPath() throws SQLException {
+        // Arrange
+        String region = "Western Europe";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getCountriesByRegion(region);
+
+        // Assert
+        assertNotNull(countries);
+        assertEquals(1, countries.size());
+        // Verify that setString was called with the correct region
+        verify(stmt).setString(1, region);
+    }
+
+    @Test
+    public void testSQLExceptionHandledGracefully() throws SQLException {
+        // Arrange
         when(con.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
 
         // Act
-        List<Country> countries = countryDAO.getAllCountries();
+        List<Country> resultAll = countryDAO.getAllCountries();
+        List<Country> resultCont = countryDAO.getCountriesByContinent("Asia");
+        List<Country> resultReg = countryDAO.getCountriesByRegion("Caribbean");
 
         // Assert
-        assertNull(countries);
+        assertNull(resultAll);
+        assertNull(resultCont);
+        assertNull(resultReg);
+    }
+
+    /**
+     * Helper method to mock a standard country row in ResultSet
+     */
+    private void mockCountryRow() throws SQLException {
+        when(rset.getString("Code")).thenReturn("TST");
+        when(rset.getString("Name")).thenReturn("Agartha");
+        when(rset.getString("Continent")).thenReturn("Europe");
+        when(rset.getString("Region")).thenReturn("Yugoslavia");
+        when(rset.getInt("Population")).thenReturn(1000);
+        when(rset.getInt("Capital")).thenReturn(1);
     }
 }
