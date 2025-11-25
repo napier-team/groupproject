@@ -1,5 +1,6 @@
 package com.napier.sem.dao;
 
+import com.napier.sem.dao.impl.LanguageDAO;
 import com.napier.sem.models.LanguageReport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

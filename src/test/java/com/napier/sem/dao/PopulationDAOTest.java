@@ -1,5 +1,6 @@
 package com.napier.sem.dao;
 
+import com.napier.sem.dao.impl.PopulationDAO;
 import com.napier.sem.models.PopulationReport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
