@@ -7,37 +7,51 @@ import java.util.List;
  * Interface defining data access operations for City entities.
  */
 public interface ICityDAO {
-    /**
-     * Retrieves all cities in the world ordered by population (largest to smallest).
-     * @return List of City objects.
-     */
+    // --- Existing Methods ---
     List<City> getAllCities();
-
-    /**
-     * Retrieves all cities in a specific continent.
-     * @param continent The continent name.
-     * @return List of City objects.
-     */
     List<City> getCitiesByContinent(String continent);
-
-    /**
-     * Retrieves all cities in a specific region.
-     * @param region The region name.
-     * @return List of City objects.
-     */
     List<City> getCitiesByRegion(String region);
-
-    /**
-     * Retrieves all cities in a specific country.
-     * @param countryCode The country code (e.g., 'GBR').
-     * @return List of City objects.
-     */
     List<City> getCitiesByCountry(String countryCode);
+    List<City> getCitiesByDistrict(String district);
+
+    // --- NEW: Top N Methods ---
 
     /**
-     * Retrieves all cities in a specific district.
-     * @param district The district name.
+     * Retrieves the top N populated cities in the world.
+     * @param n The number of cities to return.
      * @return List of City objects.
      */
-    List<City> getCitiesByDistrict(String district);
+    List<City> getTopNCitiesWorld(int n);
+
+    /**
+     * Retrieves the top N populated cities in a specific continent.
+     * @param continent The continent name.
+     * @param n The number of cities to return.
+     * @return List of City objects.
+     */
+    List<City> getTopNCitiesByContinent(String continent, int n);
+
+    /**
+     * Retrieves the top N populated cities in a specific region.
+     * @param region The region name.
+     * @param n The number of cities to return.
+     * @return List of City objects.
+     */
+    List<City> getTopNCitiesByRegion(String region, int n);
+
+    /**
+     * Retrieves the top N populated cities in a specific country.
+     * @param countryCode The country code.
+     * @param n The number of cities to return.
+     * @return List of City objects.
+     */
+    List<City> getTopNCitiesByCountry(String countryCode, int n);
+
+    /**
+     * Retrieves the top N populated cities in a specific district.
+     * @param district The district name.
+     * @param n The number of cities to return.
+     * @return List of City objects.
+     */
+    List<City> getTopNCitiesByDistrict(String district, int n);
 }
