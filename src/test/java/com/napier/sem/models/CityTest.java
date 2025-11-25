@@ -11,15 +11,15 @@ class CityTest {
 
         city.setId(101);
         city.setName("Pyongyang");
-        city.setCountryCode("GBR");
-        city.setDistrict("Scotland");
-        city.setPopulation(482005);
+        city.setCountryCode("PRK");
+        city.setDistrict("North Korea");
+        city.setPopulation(12345);
 
         assertEquals(101, city.getId());
-        assertEquals("Edinburgh", city.getName());
-        assertEquals("GBR", city.getCountryCode());
-        assertEquals("Scotland", city.getDistrict());
-        assertEquals(482005, city.getPopulation());
+        assertEquals("Pyongyang", city.getName());
+        assertEquals("PRK", city.getCountryCode());
+        assertEquals("North Korea", city.getDistrict());
+        assertEquals(12345, city.getPopulation());
     }
 
     @Test

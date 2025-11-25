@@ -45,7 +45,7 @@ class CountryTest {
 
         country.setName("#@)₴?$0");
         country.setCode("X-X"); // Hyphens
-        country.setRegion("North & South"); // Ampersands
+        country.setRegion("&&&&&"); // Ampersands
 
         assertEquals("#@)₴?$0", country.getName());
         assertEquals("X-X", country.getCode());

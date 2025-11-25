@@ -101,7 +101,7 @@ public class CapitalCityDAOTest {
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
 
-        when(rset.getString("Name")).thenReturn("Ediburgh");
+        when(rset.getString("Name")).thenReturn("Edinburgh");
         when(rset.getString("Country")).thenReturn("Scotland");
         when(rset.getInt("Population")).thenReturn(9000000);
     }
