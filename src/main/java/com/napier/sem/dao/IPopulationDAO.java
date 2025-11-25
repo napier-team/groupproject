@@ -10,4 +10,11 @@ public interface IPopulationDAO {
     List<PopulationReport> getPopulationReportsByContinent();
     List<PopulationReport> getPopulationReportsByRegion();
     List<PopulationReport> getPopulationReportsByCountry();
+
+    long getWorldPopulation();
+    long getContinentPopulation(String continent);
+    long getRegionPopulation(String region);
+    long getCountryPopulation(String countryCode);
+    long getDistrictPopulation(String district);
+    long getCityPopulation(String cityName);
 }
