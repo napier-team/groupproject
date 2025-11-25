@@ -1,9 +1,11 @@
 package com.napier.sem;
 
-import com.napier.sem.models.Country;
-import com.napier.sem.models.City;
-import com.napier.sem.dao.CountryDAO;
 import com.napier.sem.dao.CityDAO;
+import com.napier.sem.dao.CountryDAO;
+import com.napier.sem.db.DatabaseConnection;
+import com.napier.sem.models.City;
+import com.napier.sem.models.Country;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -17,18 +19,22 @@ public class AppIntegrationTest {
     static void init() {
         String dbHost = System.getenv("DB_HOST");
         if (dbHost == null) {
-            // If running locally via docker-compose, the port mapped to localhost is likely 3307
-            // as per the docker-compose.yml config provided earlier.
+            // If running locally via docker-compose (mapped port)
             dbHost = "localhost:3307";
         }
 
-        // Connect to the database using the specified host and a delay to ensure DB readiness
-        App.connect(dbHost, 30000);
+        // Connect to the database
+        DatabaseConnection.connect(dbHost, 30000);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        DatabaseConnection.disconnect();
     }
 
     @Test
     void testGetCountry() {
-        CountryDAO countryDAO = new CountryDAO(App.con);
+        CountryDAO countryDAO = new CountryDAO(DatabaseConnection.getConnection());
         List<Country> countries = countryDAO.getAllCountries();
 
         assertNotNull(countries, "Country list should not be null");
@@ -38,7 +44,7 @@ public class AppIntegrationTest {
 
     @Test
     void testGetCity() {
-        CityDAO cityDAO = new CityDAO(App.con);
+        CityDAO cityDAO = new CityDAO(DatabaseConnection.getConnection());
         List<City> cities = cityDAO.getAllCities();
 
         assertNotNull(cities, "City list should not be null");
