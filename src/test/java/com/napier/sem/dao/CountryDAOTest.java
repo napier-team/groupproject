@@ -38,6 +38,8 @@ public class CountryDAOTest {
 
     // ... (існуючі тести залишаємо без змін, або вони тут для контексту) ...
 
+    // --- HAPPY TESTS ---
+
     @Test
     public void testGetAllCountriesHappyPath() throws SQLException {
         when(con.prepareStatement(anyString())).thenReturn(stmt);
@@ -67,6 +69,40 @@ public class CountryDAOTest {
         countryDAO.getCountriesByRegion("Western Europe");
         verify(stmt).setString(1, "Western Europe");
     }
+
+    // --- UNHAPPY TESTS ---
+
+    @Test
+    public void testCountriesEmpty() throws SQLException {
+        // Crash Fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        // Mock an empty ResultSet
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<Country> countries = countryDAO.getCountriesByContinent("Antarctica");
+
+        assertNotNull(countries);
+        assertTrue(countries.isEmpty());
+    }
+
+    @Test
+    public void testCountriesWithNull() throws SQLException {
+        // crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        countryDAO.getCountriesByRegion(null);
+        verify(stmt).setString(1, null);
+    }
+
 
     // --- НОВІ ТЕСТИ ДЛЯ TOP N ---
 
@@ -129,7 +165,7 @@ public class CountryDAOTest {
         verify(stmt).setInt(2, n);
     }
 
-    // ... helper method ...
+    // ... helper methods ...
     private void mockCountryRow() throws SQLException {
         when(rset.getString("Code")).thenReturn("TST");
         when(rset.getString("Name")).thenReturn("Agartha");
@@ -138,4 +174,6 @@ public class CountryDAOTest {
         when(rset.getInt("Population")).thenReturn(1000);
         when(rset.getInt("Capital")).thenReturn(1);
     }
+
+
 }

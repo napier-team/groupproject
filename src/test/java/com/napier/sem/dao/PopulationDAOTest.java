@@ -45,6 +45,23 @@ public class PopulationDAOTest {
         assertEquals(50.0f, r.getUrbanPercentage());
     }
 
+    // --- UNHAPPY TEST ---
+
+    @Test
+    public void testPopulationEmpty() throws SQLException {
+        // crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<PopulationReport> reports = dao.getPopulationReportsByContinent();
+        assertNotNull(reports);
+        assertTrue(reports.isEmpty());
+    }
+
     private void setupMock() throws SQLException {
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);

@@ -55,4 +55,21 @@ public class LanguageDAOTest {
         assertEquals(1000000000L, report.getTotalSpeakers());
         assertEquals(15.5f, report.getWorldPercentage());
     }
+
+    // --- UNHAPPY TEST ---
+
+    @Test
+    public void testLanguageEmpty() throws SQLException {
+        // crash Fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<LanguageReport> reports = dao.getLanguageReport();
+        assertNotNull(reports);
+        assertTrue(reports.isEmpty());
+    }
 }
