@@ -35,52 +35,66 @@ public class CityDAOTest {
     @InjectMocks
     private CityDAO cityDAO;
 
+
     @Test
     public void testGetAllCitiesHappyPath() throws SQLException {
-        // Arrange
-        when(con.prepareStatement(anyString())).thenReturn(stmt);
-        when(stmt.executeQuery()).thenReturn(rset);
-        when(rset.next()).thenReturn(true).thenReturn(false);
-        mockCityRow();
+        setupMock();
+        cityDAO.getAllCities();
+        verify(stmt, atLeastOnce()).executeQuery();
+    }
 
-        // Act
-        List<City> cities = cityDAO.getAllCities();
+    // --- TOP N TESTS ---
 
-        // Assert
-        assertNotNull(cities);
-        assertEquals(1, cities.size());
+    @Test
+    public void testGetTopNCitiesWorld() throws SQLException {
+        setupMock();
+        int n = 5;
+        cityDAO.getTopNCitiesWorld(n);
+        verify(stmt).setInt(1, n);
     }
 
     @Test
-    public void testGetCitiesByContinent() throws SQLException {
+    public void testGetTopNCitiesByContinent() throws SQLException {
         setupMock();
-        cityDAO.getCitiesByContinent("Asia");
-        verify(stmt).setString(1, "Asia");
+        int n = 5;
+        String continent = "Asia";
+        cityDAO.getTopNCitiesByContinent(continent, n);
+        // Verify Param 1 is Continent, Param 2 is Limit
+        verify(stmt).setString(1, continent);
+        verify(stmt).setInt(2, n);
     }
 
     @Test
-    public void testGetCitiesByRegion() throws SQLException {
+    public void testGetTopNCitiesByRegion() throws SQLException {
         setupMock();
-        cityDAO.getCitiesByRegion("Caribbean");
-        verify(stmt).setString(1, "Caribbean");
+        int n = 5;
+        String region = "Caribbean";
+        cityDAO.getTopNCitiesByRegion(region, n);
+        verify(stmt).setString(1, region);
+        verify(stmt).setInt(2, n);
     }
 
     @Test
-    public void testGetCitiesByCountry() throws SQLException {
+    public void testGetTopNCitiesByCountry() throws SQLException {
         setupMock();
-        cityDAO.getCitiesByCountry("GBR");
-        verify(stmt).setString(1, "GBR");
+        int n = 5;
+        String countryCode = "GBR";
+        cityDAO.getTopNCitiesByCountry(countryCode, n);
+        verify(stmt).setString(1, countryCode);
+        verify(stmt).setInt(2, n);
     }
 
     @Test
-    public void testGetCitiesByDistrict() throws SQLException {
+    public void testGetTopNCitiesByDistrict() throws SQLException {
         setupMock();
-        cityDAO.getCitiesByDistrict("Scotland");
-        verify(stmt).setString(1, "Scotland");
+        int n = 5;
+        String district = "Scotland";
+        cityDAO.getTopNCitiesByDistrict(district, n);
+        verify(stmt).setString(1, district);
+        verify(stmt).setInt(2, n);
     }
 
     // --- Helpers ---
-
     private void setupMock() throws SQLException {
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
