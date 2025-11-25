@@ -28,6 +28,12 @@ jobs:
       - name: Run Unit Tests
         run: mvn -B test
 
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -62,10 +68,8 @@ jobs:
           mysql -h 127.0.0.1 -u root -pexample world < db/world.sql
 
       - name: Run Integration Tests
-        # Skips unit tests to focus solely on integration logic
         run: mvn -B verify -Dsurefire.skip=true
         env:
-          # Port :3306 is appended automatically by App.java
           DB_HOST: 127.0.0.1
           DB_USER: root
           DB_PASSWORD: example
@@ -90,10 +94,10 @@ jobs:
           cache: 'maven'
 
       - name: Build JAR
-        # Skip tests as they passed in previous stages
         run: mvn -B package -DskipTests
 
       - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -111,6 +115,7 @@ jobs:
             type=sha,format=short
 
       - name: Build and Push Docker Image
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
           context: .
