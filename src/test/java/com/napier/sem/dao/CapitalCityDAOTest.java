@@ -31,13 +31,50 @@ public class CapitalCityDAOTest {
     @InjectMocks
     private CapitalCityDAO dao;
 
+
+
+    // --- UNHAPPY TESTS ---
+
+    @Test
+    public void testCapitalEmpty() throws SQLException {
+        // crash foxUwU
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<CapitalCity> result = dao.getAllCapitalCities();
+
+        // Returns empty list instead of null
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testCapitalWithNull() throws SQLException {
+        // crash foxUWU
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+        dao.getCapitalCitiesByContinent(null);
+
+        verify(stmt).setString(1, null);
+    }
+
+    // --- HAPPY TEST ---
+
     @Test
     public void testGetAllCapitalCities() throws SQLException {
         setupMock();
         List<CapitalCity> result = dao.getAllCapitalCities();
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("London", result.get(0).getName());
+        assertEquals("Edinburgh", result.get(0).getName());
     }
 
     @Test
@@ -56,12 +93,16 @@ public class CapitalCityDAOTest {
 
     // --- Helpers ---
     private void setupMock() throws SQLException {
+        // crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
 
-        when(rset.getString("Name")).thenReturn("London");
-        when(rset.getString("Country")).thenReturn("United Kingdom");
+        when(rset.getString("Name")).thenReturn("Edinburgh");
+        when(rset.getString("Country")).thenReturn("Scotland");
         when(rset.getInt("Population")).thenReturn(9000000);
     }
 }

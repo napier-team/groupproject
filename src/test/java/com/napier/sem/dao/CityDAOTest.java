@@ -1,6 +1,7 @@
 package com.napier.sem.dao;
 
 import com.napier.sem.dao.impl.CityDAO;
+import com.napier.sem.models.City;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,9 +12,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for CityDAO using Mockito.
@@ -33,6 +36,41 @@ public class CityDAOTest {
     @InjectMocks
     private CityDAO cityDAO;
 
+    // --- UNHAPPY PATHS ---
+
+    @Test
+    public void TestCitiesEmpty() throws SQLException {
+        // Possible Crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<City> cities = cityDAO.getAllCities();
+
+        // Returns empty ArrayList instead of null
+        assertNotNull(cities);
+        assertTrue(cities.isEmpty());
+    }
+
+    @Test
+    public void testCitiesWithNull() throws SQLException {
+        // Possible Crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        cityDAO.getTopNCitiesByContinent(null, 5);
+        verify(stmt).setString(1, null);
+    }
+
+
+    // --- HAPPY PATH ---
 
     @Test
     public void testGetAllCitiesHappyPath() throws SQLException {
@@ -94,6 +132,9 @@ public class CityDAOTest {
 
     // --- Helpers ---
     private void setupMock() throws SQLException {
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
