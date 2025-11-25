@@ -3,6 +3,8 @@ package com.napier.sem.reports;
 import com.napier.sem.models.CapitalCity;
 import com.napier.sem.models.City;
 import com.napier.sem.models.Country;
+import com.napier.sem.models.LanguageReport;
+import com.napier.sem.models.PopulationReport;
 
 import java.util.List;
 
@@ -65,6 +67,40 @@ public class ReportGenerator {
             if (city == null) continue;
             System.out.println(String.format("%-35s %-40s %-12d",
                     city.getName(), city.getCountry(), city.getPopulation()));
+        }
+    }
+    /**
+     * Displays population reports showing urban vs rural distribution.
+     */
+    public void displayPopulationReports(List<PopulationReport> reports) {
+        if (reports == null || reports.isEmpty()) {
+            System.out.println("No reports found.");
+            return;
+        }
+        System.out.printf("%-30s %15s %20s %20s%n",
+                "Name", "Total Pop", "Urban Pop (%)", "Rural Pop (%)");
+        System.out.println("=".repeat(90));
+        for (PopulationReport r : reports) {
+            System.out.printf("%-30s %,15d %,15d (%.1f%%) %,15d (%.1f%%)%n",
+                    r.getName(), r.getTotalPopulation(),
+                    r.getUrbanPopulation(), r.getUrbanPercentage(),
+                    r.getRuralPopulation(), r.getRuralPercentage());
+        }
+    }
+
+    /**
+     * Displays language report showing speakers and world percentage.
+     */
+    public void displayLanguageReport(List<LanguageReport> reports) {
+        if (reports == null || reports.isEmpty()) {
+            System.out.println("No language data found.");
+            return;
+        }
+        System.out.printf("%-15s %20s %15s%n", "Language", "Speakers", "World %");
+        System.out.println("=".repeat(55));
+        for (LanguageReport r : reports) {
+            System.out.printf("%-15s %,20d %14.2f%%%n",
+                    r.getLanguageName(), r.getTotalSpeakers(), r.getWorldPercentage());
         }
     }
 }
