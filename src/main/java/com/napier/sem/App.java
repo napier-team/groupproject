@@ -18,12 +18,15 @@ import java.util.List;
 public class App {
 
     public static void main(String[] args) {
-        // Determine database location from environment or default
         String dbHost = System.getenv().getOrDefault("DB_HOST", "db");
         String location = dbHost + ":3306";
         int delay = 10000;
 
-        // Connect to database
+        if (args.length > 0) {
+            location = args[0];
+            delay = 0;
+        }
+
         DatabaseConnection.connect(location, delay);
 
         try {
@@ -31,35 +34,29 @@ public class App {
             ICityDAO cityDAO = new CityDAO(DatabaseConnection.getConnection());
             ReportGenerator reportGenerator = new ReportGenerator();
 
-            // --- Country Reports ---
+            // --- Existing Reports ---
+            System.out.println("\nReport: All countries in the world");
+            reportGenerator.displayCountries(countryDAO.getAllCountries());
 
-            // 1. All countries in the world
-            System.out.println("\nReport: All countries in the world by population");
+            // --- NEW: Top N Reports ---
+            int n = 5;
+
+            System.out.println("\nReport: Top " + n + " populated countries in the world");
             System.out.println("==================================================");
-            List<Country> countries = countryDAO.getAllCountries();
-            reportGenerator.displayCountries(countries);
+            List<Country> topCountries = countryDAO.getTopNCountries(n);
+            reportGenerator.displayCountries(topCountries);
 
-            // 2. All countries in a continent (e.g., Europe)
-            System.out.println("\nReport: All countries in 'Europe' by population");
+            System.out.println("\nReport: Top " + n + " populated countries in 'Asia'");
             System.out.println("==================================================");
-            List<Country> countriesByContinent = countryDAO.getCountriesByContinent("Europe");
-            reportGenerator.displayCountries(countriesByContinent);
+            List<Country> topAsia = countryDAO.getTopNCountriesByContinent("Asia", n);
+            reportGenerator.displayCountries(topAsia);
 
-            // 3. All countries in a region (e.g., Caribbean)
-            System.out.println("\nReport: All countries in 'Caribbean' by population");
+            System.out.println("\nReport: Top " + n + " populated countries in 'Caribbean'");
             System.out.println("==================================================");
-            List<Country> countriesByRegion = countryDAO.getCountriesByRegion("Caribbean");
-            reportGenerator.displayCountries(countriesByRegion);
+            List<Country> topCaribbean = countryDAO.getTopNCountriesByRegion("Caribbean", n);
+            reportGenerator.displayCountries(topCaribbean);
 
-
-            // --- City Reports (Placeholder for now) ---
-            System.out.println("\nReport: All cities in the world by population (Limit 10 for brevity)");
-            System.out.println("==================================================");
-            // Just for demonstration until we implement specific city reports
-            List<City> cities = cityDAO.getAllCities();
-            // In a real scenario, we might want to limit this list in the SQL,
-            // but for now we just display what we have.
-            reportGenerator.displayCities(cities);
+            // ... City reports placeholder ...
 
         } finally {
             DatabaseConnection.disconnect();
