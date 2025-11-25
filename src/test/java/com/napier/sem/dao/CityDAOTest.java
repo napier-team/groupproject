@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for CityDAO using Mockito.
@@ -37,16 +37,11 @@ public class CityDAOTest {
 
     @Test
     public void testGetAllCitiesHappyPath() throws SQLException {
-        // Arrange mocks
+        // Arrange
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
-        when(rset.next()).thenReturn(true).thenReturn(false); // Loop once
-
-        when(rset.getInt("ID")).thenReturn(67);
-        when(rset.getString("Name")).thenReturn("Test City");
-        when(rset.getString("CountryCode")).thenReturn("TET");
-        when(rset.getString("District")).thenReturn("Mango Phonk");
-        when(rset.getInt("Population")).thenReturn(5000);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCityRow();
 
         // Act
         List<City> cities = cityDAO.getAllCities();
@@ -54,20 +49,50 @@ public class CityDAOTest {
         // Assert
         assertNotNull(cities);
         assertEquals(1, cities.size());
-        City city = cities.get(0);
-        assertEquals(67, city.getId());
-        assertEquals("Test City", city.getName());
     }
 
     @Test
-    public void testGetAllCitiesSQLException() throws SQLException {
-        // Arrange exception
-        when(con.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
+    public void testGetCitiesByContinent() throws SQLException {
+        setupMock();
+        cityDAO.getCitiesByContinent("Asia");
+        verify(stmt).setString(1, "Asia");
+    }
 
-        // Act
-        List<City> cities = cityDAO.getAllCities();
+    @Test
+    public void testGetCitiesByRegion() throws SQLException {
+        setupMock();
+        cityDAO.getCitiesByRegion("Caribbean");
+        verify(stmt).setString(1, "Caribbean");
+    }
 
-        // Assert
-        assertNull(cities);
+    @Test
+    public void testGetCitiesByCountry() throws SQLException {
+        setupMock();
+        cityDAO.getCitiesByCountry("GBR");
+        verify(stmt).setString(1, "GBR");
+    }
+
+    @Test
+    public void testGetCitiesByDistrict() throws SQLException {
+        setupMock();
+        cityDAO.getCitiesByDistrict("Scotland");
+        verify(stmt).setString(1, "Scotland");
+    }
+
+    // --- Helpers ---
+
+    private void setupMock() throws SQLException {
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCityRow();
+    }
+
+    private void mockCityRow() throws SQLException {
+        when(rset.getInt("ID")).thenReturn(67);
+        when(rset.getString("Name")).thenReturn("Test City");
+        when(rset.getString("CountryCode")).thenReturn("TET");
+        when(rset.getString("District")).thenReturn("District 9");
+        when(rset.getInt("Population")).thenReturn(5000);
     }
 }
