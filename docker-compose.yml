@@ -1,41 +1,32 @@
-# Defines the Docker Compose file format version.
 version: '3.8'
 
-# Defines the services (containers) that make up the application.
 services:
-  # The application service, built from the project's Dockerfile.
   app:
+    container_name: sem-app
     build: .
-    # This service will wait for the 'db' service to become healthy before starting,
-    # ensuring the database is ready to accept connections.
     depends_on:
       db:
         condition: service_healthy
-
-    #CODE TO MAKE DOCKER CONNECT FOR TESTS
     environment:
-      - DB_HOST=db        # Tells the app the database hostname is 'db'
-      - DB_USER=root      # Passes the database username
-      - DB_PASSWORD=example # Passes the database password
-    #END OF TESTS
+      # Points to the service name defined below
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=example
+    ports:
+      - "8080:8080"
 
-  # The database service, using the official MySQL 8.0 image.
   db:
+    container_name: sem-db
     image: mysql:8.0
-    # Ensures the database container restarts automatically if it stops.
     restart: always
     environment:
-      # Sets the root password for the database.
       MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: world
     ports:
-      # Maps port 3307 on the host to port 3306 in the container.
-      # This allows direct database access from the host machine for development tools.
+      # Host:Container
       - "3307:3306"
     volumes:
-      # Mounts the local ./db directory into a special directory within the container.
-      # Any .sql files in this directory are automatically executed on first start to initialize the database.
       - ./db:/docker-entrypoint-initdb.d
-    # Defines a command to check if the database service is ready and healthy.
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s

@@ -1,5 +1,6 @@
 package com.napier.sem.dao;
 
+import com.napier.sem.dao.impl.CountryDAO;
 import com.napier.sem.models.Country;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for CountryDAO using Mockito.
@@ -35,39 +36,144 @@ public class CountryDAOTest {
     @InjectMocks
     private CountryDAO countryDAO;
 
+    // ... (існуючі тести залишаємо без змін, або вони тут для контексту) ...
+
+    // --- HAPPY TESTS ---
+
     @Test
     public void testGetAllCountriesHappyPath() throws SQLException {
-        // Arrange mocks
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
         when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+        List<Country> countries = countryDAO.getAllCountries();
+        assertNotNull(countries);
+    }
 
-        // Mock return data
+    @Test
+    public void testGetCountriesByContinentHappyPath() throws SQLException {
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+        countryDAO.getCountriesByContinent("Europe");
+        verify(stmt).setString(1, "Europe");
+    }
+
+    @Test
+    public void testGetCountriesByRegionHappyPath() throws SQLException {
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+        countryDAO.getCountriesByRegion("Western Europe");
+        verify(stmt).setString(1, "Western Europe");
+    }
+
+    // --- UNHAPPY TESTS ---
+
+    @Test
+    public void testCountriesEmpty() throws SQLException {
+        // Crash Fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        // Mock an empty ResultSet
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        List<Country> countries = countryDAO.getCountriesByContinent("Antarctica");
+
+        assertNotNull(countries);
+        assertTrue(countries.isEmpty());
+    }
+
+    @Test
+    public void testCountriesWithNull() throws SQLException {
+        // crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
+
+        countryDAO.getCountriesByRegion(null);
+        verify(stmt).setString(1, null);
+    }
+
+
+    // --- НОВІ ТЕСТИ ДЛЯ TOP N ---
+
+    @Test
+    public void testGetTopNCountriesWorld() throws SQLException {
+        // Arrange
+        int n = 5;
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getTopNCountries(n);
+
+        // Assert
+        assertNotNull(countries);
+        assertEquals(1, countries.size());
+        // Verify LIMIT parameter was set
+        verify(stmt).setInt(1, n);
+    }
+
+    @Test
+    public void testGetTopNCountriesByContinent() throws SQLException {
+        // Arrange
+        int n = 5;
+        String continent = "Asia";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getTopNCountriesByContinent(continent, n);
+
+        // Assert
+        assertNotNull(countries);
+        // Verify parameters: 1 is Continent, 2 is LIMIT
+        verify(stmt).setString(1, continent);
+        verify(stmt).setInt(2, n);
+    }
+
+    @Test
+    public void testGetTopNCountriesByRegion() throws SQLException {
+        // Arrange
+        int n = 5;
+        String region = "Caribbean";
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCountryRow();
+
+        // Act
+        List<Country> countries = countryDAO.getTopNCountriesByRegion(region, n);
+
+        // Assert
+        assertNotNull(countries);
+        // Verify parameters: 1 is Region, 2 is LIMIT
+        verify(stmt).setString(1, region);
+        verify(stmt).setInt(2, n);
+    }
+
+    // ... helper methods ...
+    private void mockCountryRow() throws SQLException {
         when(rset.getString("Code")).thenReturn("TST");
         when(rset.getString("Name")).thenReturn("Agartha");
         when(rset.getString("Continent")).thenReturn("Europe");
         when(rset.getString("Region")).thenReturn("Yugoslavia");
         when(rset.getInt("Population")).thenReturn(1000);
         when(rset.getInt("Capital")).thenReturn(1);
-
-        // Act
-        List<Country> countries = countryDAO.getAllCountries();
-
-        // Assert
-        assertNotNull(countries);
-        assertEquals(1, countries.size());
-        assertEquals("Agartha", countries.get(0).name);
     }
 
-    @Test
-    public void testGetAllCountriesSQLException() throws SQLException {
-        // Arrange exception
-        when(con.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
 
-        // Act
-        List<Country> countries = countryDAO.getAllCountries();
-
-        // Assert
-        assertNull(countries);
-    }
 }

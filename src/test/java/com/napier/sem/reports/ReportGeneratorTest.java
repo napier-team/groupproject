@@ -50,12 +50,12 @@ public class ReportGeneratorTest {
         // Create a sample list
         List<Country> countries = new ArrayList<>();
         Country c = new Country();
-        c.code = "UA";
-        c.name = "Ukraine";
-        c.continent = "Europe";
-        c.region = "Eastern Europe";
-        c.population = 67000000;
-        c.capital = 410;
+        c.setCode("UA");
+        c.setName("Ukraine");
+        c.setContinent("Europe");
+        c.setRegion("Eastern Europe");
+        c.setPopulation(67000000);
+        c.setCapital(410);
         countries.add(c);
 
         reportGenerator.displayCountries(countries);
@@ -66,7 +66,6 @@ public class ReportGeneratorTest {
                 "UA", "Ukraine", "Europe", "Eastern Europe", 67000000, 410);
 
         // Construct expected output: Header + Newline + Row + Newline
-        // We do NOT trim the actual output, so we must include all newlines exactly.
         String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
 
         assertEquals(expectedOutput, outContent.toString());
@@ -89,11 +88,11 @@ public class ReportGeneratorTest {
         // Create a sample list
         List<City> cities = new ArrayList<>();
         City c = new City();
-        c.id = "101";
-        c.name = "Edinburgh";
-        c.code = "EDI";
-        c.district = "Scotland";
-        c.population = 506520;
+        c.setId(101); // Integer ID
+        c.setName("Edinburgh");
+        c.setCountryCode("GBR"); // Using ISO code usually, but 'EDI' was in your mock, changed to GBR for realism
+        c.setDistrict("Scotland");
+        c.setPopulation(506520);
         cities.add(c);
 
         reportGenerator.displayCities(cities);
@@ -101,9 +100,8 @@ public class ReportGeneratorTest {
         String header = String.format("%-10s %-35s %-15s %-25s %-12s",
                 "ID", "Name", "Country Code", "District", "Population");
         String row = String.format("%-10s %-35s %-15s %-25s %-12d",
-                "101", "Edinburgh", "EDI", "Scotland", 506520);
+                "101", "Edinburgh", "GBR", "Scotland", 506520);
 
-        // Construct expected output: Header + Newline + Row + Newline
         String expectedOutput = header + System.lineSeparator() + row + System.lineSeparator();
 
         assertEquals(expectedOutput, outContent.toString());

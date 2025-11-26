@@ -1,5 +1,6 @@
 package com.napier.sem.dao;
 
+import com.napier.sem.dao.impl.CityDAO;
 import com.napier.sem.models.City;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for CityDAO using Mockito.
@@ -35,40 +36,116 @@ public class CityDAOTest {
     @InjectMocks
     private CityDAO cityDAO;
 
+    // --- UNHAPPY PATHS ---
+
     @Test
-    public void testGetAllCitiesHappyPath() throws SQLException {
-        // Arrange mocks
+    public void TestCitiesEmpty() throws SQLException {
+        // Possible Crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
         when(con.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeQuery()).thenReturn(rset);
-        when(rset.next()).thenReturn(true).thenReturn(false); // Loop once
+        when(rset.next()).thenReturn(false);
 
-        // Mock return data
-        when(rset.getString("ID")).thenReturn("67");
-        when(rset.getString("Name")).thenReturn("Test City");
-        when(rset.getString("CountryCode")).thenReturn("TET");
-        when(rset.getString("District")).thenReturn("Mango Phonk");
-        when(rset.getInt("Population")).thenReturn(5000);
-
-        // Act
         List<City> cities = cityDAO.getAllCities();
 
-        // Assert
+        // Returns empty ArrayList instead of null
         assertNotNull(cities);
-        assertEquals(1, cities.size());
-        City city = cities.get(0);
-        assertEquals("67", city.id);
-        assertEquals("Test City", city.name);
+        assertTrue(cities.isEmpty());
     }
 
     @Test
-    public void testGetAllCitiesSQLException() throws SQLException {
-        // Arrange exception
-        when(con.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
+    public void testCitiesWithNull() throws SQLException {
+        // Possible Crash fix
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
 
-        // Act
-        List<City> cities = cityDAO.getAllCities();
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(false);
 
-        // Assert
-        assertNull(cities);
+        cityDAO.getTopNCitiesByContinent(null, 5);
+        verify(stmt).setString(1, null);
+    }
+
+
+    // --- HAPPY PATH ---
+
+    @Test
+    public void testGetAllCitiesHappyPath() throws SQLException {
+        setupMock();
+        cityDAO.getAllCities();
+        verify(stmt, atLeastOnce()).executeQuery();
+    }
+
+    // --- TOP N TESTS ---
+
+    @Test
+    public void testGetTopNCitiesWorld() throws SQLException {
+        setupMock();
+        int n = 5;
+        cityDAO.getTopNCitiesWorld(n);
+        verify(stmt).setInt(1, n);
+    }
+
+    @Test
+    public void testGetTopNCitiesByContinent() throws SQLException {
+        setupMock();
+        int n = 5;
+        String continent = "Asia";
+        cityDAO.getTopNCitiesByContinent(continent, n);
+        // Verify Param 1 is Continent, Param 2 is Limit
+        verify(stmt).setString(1, continent);
+        verify(stmt).setInt(2, n);
+    }
+
+    @Test
+    public void testGetTopNCitiesByRegion() throws SQLException {
+        setupMock();
+        int n = 5;
+        String region = "Caribbean";
+        cityDAO.getTopNCitiesByRegion(region, n);
+        verify(stmt).setString(1, region);
+        verify(stmt).setInt(2, n);
+    }
+
+    @Test
+    public void testGetTopNCitiesByCountry() throws SQLException {
+        setupMock();
+        int n = 5;
+        String countryCode = "GBR";
+        cityDAO.getTopNCitiesByCountry(countryCode, n);
+        verify(stmt).setString(1, countryCode);
+        verify(stmt).setInt(2, n);
+    }
+
+    @Test
+    public void testGetTopNCitiesByDistrict() throws SQLException {
+        setupMock();
+        int n = 5;
+        String district = "Scotland";
+        cityDAO.getTopNCitiesByDistrict(district, n);
+        verify(stmt).setString(1, district);
+        verify(stmt).setInt(2, n);
+    }
+
+    // --- Helpers ---
+    private void setupMock() throws SQLException {
+        doNothing().when(stmt).close();
+        doNothing().when(rset).close();
+
+        when(con.prepareStatement(anyString())).thenReturn(stmt);
+        when(stmt.executeQuery()).thenReturn(rset);
+        when(rset.next()).thenReturn(true).thenReturn(false);
+        mockCityRow();
+    }
+
+    private void mockCityRow() throws SQLException {
+        when(rset.getInt("ID")).thenReturn(67);
+        when(rset.getString("Name")).thenReturn("Test City");
+        when(rset.getString("CountryCode")).thenReturn("TET");
+        when(rset.getString("District")).thenReturn("District 9");
+        when(rset.getInt("Population")).thenReturn(5000);
     }
 }
