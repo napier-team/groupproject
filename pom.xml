@@ -6,7 +6,7 @@
 
     <groupId>com.napier.sem</groupId>
     <artifactId>GroupProject</artifactId>
-    <version>1.2</version>
+    <version>1.4</version>
 
     <properties>
         <!-- Enforce Java 17 LTS -->
